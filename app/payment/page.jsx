@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { assets } from "@/assets/assets";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { sendPaymentConfirmationEmail } from "@/lib/email-service";
 
-const Payment = () => {
+function PaymentContent() {
   const { currency, getCartAmount, getCartCount, cartItems, products, createOrder } = useAppContext();
   const { user } = useUser();
   const router = useRouter();
@@ -647,6 +647,12 @@ const Payment = () => {
       </div>
     </>
   );
-};
+}
 
-export default Payment; 
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={<div>Loading payment...</div>}>
+      <PaymentContent />
+    </Suspense>
+  );
+} 
