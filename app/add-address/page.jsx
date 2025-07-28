@@ -4,8 +4,13 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import { useState } from "react";
+import { useAppContext } from "@/context/AppContext";
+import { useRouter } from "next/navigation";
 
 const AddAddress = () => {
+
+    const { saveAddress, fetchAddresses } = useAppContext();
+    const router = useRouter();
 
     const [address, setAddress] = useState({
         fullName: '',
@@ -18,7 +23,9 @@ const AddAddress = () => {
 
     const onSubmitHandler = async (e) => {
         e.preventDefault();
-
+        await saveAddress(address);
+        await fetchAddresses(); // ensure context is updated
+        router.back(); // or router.push('/cart')
     }
 
     return (
