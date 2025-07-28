@@ -11,6 +11,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState({});
   const [activeTab, setActiveTab] = useState('orders');
+  const [error, setError] = useState('');
   
   // Product form states
   const [files, setFiles] = useState([]);
@@ -23,11 +24,22 @@ const AdminDashboard = () => {
 
   const fetchOrders = async () => {
     setLoading(true);
+    setError('');
     try {
+      console.log('Fetching orders...');
       const res = await fetch('/api/orders');
+      console.log('Orders response status:', res.status);
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
+      console.log('Orders data:', data);
       setOrders(Array.isArray(data) ? data : []);
     } catch (err) {
+      console.error('Error fetching orders:', err);
+      setError(`Failed to fetch orders: ${err.message}`);
       setOrders([]);
     } finally {
       setLoading(false);
@@ -36,10 +48,20 @@ const AdminDashboard = () => {
 
   const fetchProducts = async () => {
     try {
+      console.log('Fetching products...');
       const res = await fetch('/api/products');
+      console.log('Products response status:', res.status);
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
+      console.log('Products data:', data);
       setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
+      console.error('Error fetching products:', err);
+      setError(`Failed to fetch products: ${err.message}`);
       setProducts([]);
     }
   };
@@ -52,8 +74,11 @@ const AdminDashboard = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
+      
       if (res.ok) {
         await fetchOrders();
+      } else {
+        console.error('Failed to update order status:', res.status);
       }
     } catch (err) {
       console.error('Error updating order:', err);
@@ -97,6 +122,8 @@ const AdminDashboard = () => {
         
         // Refresh products list
         await fetchProducts();
+      } else {
+        console.error('Failed to add product:', res.status);
       }
     } catch (err) {
       console.error('Error adding product:', err);
@@ -111,6 +138,8 @@ const AdminDashboard = () => {
       
       if (res.ok) {
         await fetchProducts();
+      } else {
+        console.error('Failed to delete product:', res.status);
       }
     } catch (err) {
       console.error('Error deleting product:', err);
@@ -118,6 +147,7 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
+    console.log('Admin dashboard mounted');
     fetchOrders();
     fetchProducts();
   }, []);
@@ -127,6 +157,18 @@ const AdminDashboard = () => {
       <Navbar />
       <div className="px-6 md:px-16 lg:px-32 py-8 min-h-screen">
         <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+        
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <span className="text-red-700 font-medium">{error}</span>
+            </div>
+          </div>
+        )}
         
         {/* Tab Navigation */}
         <div className="flex border-b mb-6">
@@ -148,58 +190,67 @@ const AdminDashboard = () => {
           <div>
             <h2 className="text-2xl font-bold mb-6">All Orders</h2>
             {loading ? (
-              <div>Loading orders...</div>
+              <div className="flex items-center justify-center py-8">
+                <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="ml-2">Loading orders...</span>
+              </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full border text-sm">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="p-2 border">Order ID</th>
-                      <th className="p-2 border">User</th>
-                      <th className="p-2 border">Products</th>
-                      <th className="p-2 border">Amount</th>
-                      <th className="p-2 border">Status</th>
-                      <th className="p-2 border">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.map(order => (
-                      <tr key={order._id} className="border-b">
-                        <td className="p-2 border">{order.orderId || order._id}</td>
-                        <td className="p-2 border">{order.customerName || 'N/A'}<br />{order.customerEmail || ''}</td>
-                        <td className="p-2 border">
-                          {order.items && order.items.length > 0 ? (
-                            <ul>
-                              {order.items.map((item, idx) => (
-                                <li key={idx}>
-                                  {(item.name || item.product?.name || 'Product')} x {item.quantity || 1}
-                                </li>
-                              ))}
-                            </ul>
-                          ) : 'No items'}
-                        </td>
-                        <td className="p-2 border">${order.amount || order.total || 0}</td>
-                        <td className="p-2 border">{order.status}</td>
-                        <td className="p-2 border">
-                          <button
-                            className="bg-green-600 text-white px-3 py-1 rounded mr-2 disabled:opacity-50"
-                            disabled={updating[order._id] || order.status === 'Accepted'}
-                            onClick={() => updateOrderStatus(order._id, 'Accepted')}
-                          >
-                            {updating[order._id] ? 'Updating...' : 'Accept'}
-                          </button>
-                          <button
-                            className="bg-blue-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                            disabled={updating[order._id] || order.status === 'Available'}
-                            onClick={() => updateOrderStatus(order._id, 'Available')}
-                          >
-                            {updating[order._id] ? 'Updating...' : 'Mark Available'}
-                          </button>
-                        </td>
+                {orders.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No orders found.</p>
+                  </div>
+                ) : (
+                  <table className="min-w-full border text-sm">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="p-2 border">Order ID</th>
+                        <th className="p-2 border">User</th>
+                        <th className="p-2 border">Products</th>
+                        <th className="p-2 border">Amount</th>
+                        <th className="p-2 border">Status</th>
+                        <th className="p-2 border">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {orders.map(order => (
+                        <tr key={order._id} className="border-b">
+                          <td className="p-2 border">{order.orderId || order._id}</td>
+                          <td className="p-2 border">{order.customerName || 'N/A'}<br />{order.customerEmail || ''}</td>
+                          <td className="p-2 border">
+                            {order.items && order.items.length > 0 ? (
+                              <ul>
+                                {order.items.map((item, idx) => (
+                                  <li key={idx}>
+                                    {(item.name || item.product?.name || 'Product')} x {item.quantity || 1}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : 'No items'}
+                          </td>
+                          <td className="p-2 border">${order.amount || order.total || 0}</td>
+                          <td className="p-2 border">{order.status}</td>
+                          <td className="p-2 border">
+                            <button
+                              className="bg-green-600 text-white px-3 py-1 rounded mr-2 disabled:opacity-50"
+                              disabled={updating[order._id] || order.status === 'Accepted'}
+                              onClick={() => updateOrderStatus(order._id, 'Accepted')}
+                            >
+                              {updating[order._id] ? 'Updating...' : 'Accept'}
+                            </button>
+                            <button
+                              className="bg-blue-600 text-white px-3 py-1 rounded disabled:opacity-50"
+                              disabled={updating[order._id] || order.status === 'Available'}
+                              onClick={() => updateOrderStatus(order._id, 'Available')}
+                            >
+                              {updating[order._id] ? 'Updating...' : 'Mark Available'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             )}
           </div>
@@ -341,51 +392,57 @@ const AdminDashboard = () => {
             )}
 
             <div className="overflow-x-auto">
-              <table className="min-w-full border text-sm">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="p-2 border">Product</th>
-                    <th className="p-2 border">Category</th>
-                    <th className="p-2 border">Price</th>
-                    <th className="p-2 border">Offer Price</th>
-                    <th className="p-2 border">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((product, index) => (
-                    <tr key={product._id || index} className="border-b">
-                      <td className="p-2 border">
-                        <div className="flex items-center space-x-3">
-                          <div className="bg-gray-500/10 rounded p-2">
-                            <Image
-                              src={product.imgSrc || product.image?.[0] || assets.upload_area}
-                              alt="product"
-                              className="w-16"
-                              width={64}
-                              height={64}
-                            />
-                          </div>
-                          <div>
-                            <div className="font-medium">{product.name}</div>
-                            <div className="text-sm text-gray-500">{product.description}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-2 border">{product.category}</td>
-                      <td className="p-2 border">${product.price}</td>
-                      <td className="p-2 border">${product.offerPrice}</td>
-                      <td className="p-2 border">
-                        <button
-                          onClick={() => deleteProduct(product._id)}
-                          className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-                        >
-                          Delete
-                        </button>
-                      </td>
+              {products.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No products found.</p>
+                </div>
+              ) : (
+                <table className="min-w-full border text-sm">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="p-2 border">Product</th>
+                      <th className="p-2 border">Category</th>
+                      <th className="p-2 border">Price</th>
+                      <th className="p-2 border">Offer Price</th>
+                      <th className="p-2 border">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {products.map((product, index) => (
+                      <tr key={product._id || index} className="border-b">
+                        <td className="p-2 border">
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-gray-500/10 rounded p-2">
+                              <Image
+                                src={product.imgSrc || product.image?.[0] || assets.upload_area}
+                                alt="product"
+                                className="w-16"
+                                width={64}
+                                height={64}
+                              />
+                            </div>
+                            <div>
+                              <div className="font-medium">{product.name}</div>
+                              <div className="text-sm text-gray-500">{product.description}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-2 border">{product.category}</td>
+                        <td className="p-2 border">${product.price}</td>
+                        <td className="p-2 border">${product.offerPrice}</td>
+                        <td className="p-2 border">
+                          <button
+                            onClick={() => deleteProduct(product._id)}
+                            className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         )}

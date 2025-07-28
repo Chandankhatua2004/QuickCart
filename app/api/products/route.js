@@ -2,16 +2,33 @@ import { dbConnect } from '@/lib/mongoose';
 import Product from '@/models/Product';
 
 export async function GET(req) {
-  await dbConnect();
-  const products = await Product.find().sort({ createdAt: -1 });
-  return Response.json(products);
+  try {
+    console.log('Connecting to database...');
+    await dbConnect();
+    console.log('Database connected successfully');
+    
+    console.log('Fetching products from database...');
+    const products = await Product.find().sort({ createdAt: -1 });
+    console.log(`Found ${products.length} products`);
+    
+    return Response.json(products);
+  } catch (error) {
+    console.error('Error in GET /api/products:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Failed to fetch products',
+      details: error.message 
+    }), { status: 500 });
+  }
 }
 
 export async function POST(req) {
-  await dbConnect();
-  
   try {
+    console.log('Connecting to database...');
+    await dbConnect();
+    console.log('Database connected successfully');
+    
     const formData = await req.formData();
+    console.log('Form data received');
     
     const productData = {
       name: formData.get('name'),
@@ -21,6 +38,8 @@ export async function POST(req) {
       offerPrice: parseFloat(formData.get('offerPrice')),
       image: []
     };
+
+    console.log('Product data:', productData);
 
     // Handle image files (for now, we'll store placeholder URLs)
     // In a real application, you'd upload these to a cloud storage service
@@ -38,10 +57,16 @@ export async function POST(req) {
       productData.image.push('/placeholder-image.jpg');
     }
 
+    console.log('Creating product with data:', productData);
     const product = await Product.create(productData);
+    console.log('Product created successfully:', product._id);
+    
     return Response.json(product);
   } catch (error) {
-    console.error('Error creating product:', error);
-    return new Response(JSON.stringify({ error: 'Failed to create product' }), { status: 500 });
+    console.error('Error in POST /api/products:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Failed to create product',
+      details: error.message 
+    }), { status: 500 });
   }
 } 
