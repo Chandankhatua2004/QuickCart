@@ -99,13 +99,13 @@ const OrderSummary = () => {
               <ul className="absolute w-full bg-white border shadow-md mt-1 z-10 py-1.5">
                 {Array.isArray(addresses) && addresses.length > 0 ? (
                   addresses.map((address, index) => (
-                    <li
-                      key={index}
-                      className="px-4 py-2 hover:bg-gray-500/10 cursor-pointer"
-                      onClick={() => handleAddressSelect(address)}
-                    >
-                      {address.fullName}, {address.area}, {address.city}, {address.state}
-                    </li>
+                  <li
+                    key={index}
+                    className="px-4 py-2 hover:bg-gray-500/10 cursor-pointer"
+                    onClick={() => handleAddressSelect(address)}
+                  >
+                    {address.fullName}, {address.area}, {address.city}, {address.state}
+                  </li>
                   ))
                 ) : (
                   <li className="px-4 py-2 text-gray-400 text-center">No addresses found. Add a new address.</li>

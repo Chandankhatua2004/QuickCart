@@ -42,8 +42,8 @@ A full-featured e-commerce platform built with Next.js, MongoDB, and Clerk authe
    Fill in your environment variables in `.env.local`
 
 4. **Run development server**
-   ```bash
-   npm run dev
+```bash
+npm run dev
    ```
 
 ## 🔧 Environment Variables

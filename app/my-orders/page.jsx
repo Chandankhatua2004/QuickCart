@@ -90,41 +90,41 @@ const MyOrders = () => {
                             const emailStatus = getEmailStatus(order._id || order.orderId || order.id);
                             
                             return (
-                                <div key={index} className="flex flex-col md:flex-row gap-5 justify-between p-5 border-b border-gray-300">
-                                    <div className="flex-1 flex gap-5 max-w-80">
-                                        <Image
-                                            className="max-w-16 max-h-16 object-cover"
-                                            src={assets.box_icon}
-                                            alt="box_icon"
-                                        />
-                                        <p className="flex flex-col gap-3">
-                                            <span className="font-medium text-base">
+                            <div key={index} className="flex flex-col md:flex-row gap-5 justify-between p-5 border-b border-gray-300">
+                                <div className="flex-1 flex gap-5 max-w-80">
+                                    <Image
+                                        className="max-w-16 max-h-16 object-cover"
+                                        src={assets.box_icon}
+                                        alt="box_icon"
+                                    />
+                                    <p className="flex flex-col gap-3">
+                                        <span className="font-medium text-base">
                                                 {order.items && order.items.length > 0 
                                                     ? order.items.map((item) => 
                                                         (item.name || item.product?.name || 'Product') + ` x ${item.quantity || 1}`
                                                       ).join(", ")
                                                     : 'No items'
                                                 }
-                                            </span>
+                                        </span>
                                             <span>Items : {order.items?.length || 0}</span>
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p>
                                             <span className="font-medium">{order.customerName || 'Customer'}</span>
-                                            <br />
+                                        <br />
                                             <span>{order.customerEmail || 'No email'}</span>
-                                            <br />
+                                        <br />
                                             <span>Order ID: {order.orderId}</span>
-                                            <br />
+                                        <br />
                                             <span>Payment: {order.paymentMethod?.toUpperCase() || 'COD'}</span>
-                                        </p>
-                                    </div>
-                                    <p className="font-medium my-auto">{currency}{order.amount}</p>
-                                    <div>
-                                        <p className="flex flex-col">
+                                    </p>
+                                </div>
+                                <p className="font-medium my-auto">{currency}{order.amount}</p>
+                                <div>
+                                    <p className="flex flex-col">
                                             <span>Method : {order.paymentMethod?.toUpperCase() || 'COD'}</span>
-                                            <span>Date : {new Date(order.date).toLocaleDateString()}</span>
+                                        <span>Date : {new Date(order.date).toLocaleDateString()}</span>
                                             <span>Status : {order.status || 'Processing'}</span>
                                         </p>
                                     </div>

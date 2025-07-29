@@ -7,8 +7,13 @@ export async function GET(req) {
     await dbConnect();
     console.log('Database connected successfully');
     
+    const { search } = Object.fromEntries(new URL(req.url).searchParams);
+    let query = {};
+    if (search) {
+      query.name = { $regex: search, $options: 'i' };
+    }
     console.log('Fetching products from database...');
-    const products = await Product.find().sort({ createdAt: -1 });
+    const products = await Product.find(query).sort({ createdAt: -1 });
     console.log(`Found ${products.length} products`);
     
     return Response.json(products);

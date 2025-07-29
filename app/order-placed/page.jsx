@@ -1,19 +1,17 @@
 'use client'
 import { assets } from '@/assets/assets'
-import { useAppContext } from '@/context/AppContext'
 import Image from 'next/image'
 import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 const OrderPlaced = () => {
-
-  const { router } = useAppContext()
-
+  const router = useRouter()
   useEffect(() => {
-    setTimeout(() => {
-      router.push('/my-orders')
-    }, 5000)
-  }, [])
-
+    const timer = setTimeout(() => {
+      router.push('/')
+    }, 3000)
+    return () => clearTimeout(timer)
+  }, [router])
   return (
     <div className='h-screen flex flex-col justify-center items-center gap-5'>
       <div className="flex justify-center items-center relative">

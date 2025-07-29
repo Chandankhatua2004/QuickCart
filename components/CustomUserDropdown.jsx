@@ -77,15 +77,6 @@ const CustomUserDropdown = () => {
           </Link>
 
           <Link
-            href="/my-orders"
-            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            onClick={() => setIsOpen(false)}
-          >
-            <Image src={assets.order_icon} alt="orders" width={16} height={16} />
-            <span>My Orders</span>
-          </Link>
-
-          <Link
             href="/add-address"
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             onClick={() => setIsOpen(false)}
